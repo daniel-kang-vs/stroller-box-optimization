@@ -8,6 +8,8 @@ A mixed-integer model chooses shared packaging and product assignments from 43 c
 
 [Case study](https://daniel-kang-vs.github.io/projects/babyship.html) · [Source evidence](https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb) · [Live dashboard](https://daniel-kang-vs.github.io/stroller-box-optimization/)
 
+[![Dashboard preview](https://raw.githubusercontent.com/daniel-kang-vs/daniel-kang-vs.github.io/main/pngs/project-ip-optimization.png)](https://daniel-kang-vs.github.io/stroller-box-optimization/)
+
 ## Highlights
 
 - **17 products · 43 candidates**
