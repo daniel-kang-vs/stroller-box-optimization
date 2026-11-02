@@ -10,3 +10,7 @@ Product names, per-product billable weights, and optimized assignments are trans
 The comparison weights every product once. No shipment-frequency weighting, warehouse-complexity index, carrier invoice, or financial saving is represented. The model adds 0.5 inches per dimension; it does not add 0.5 inches on each side.
 
 To reproduce the optimizer, run the notebook in a Gurobi-enabled environment. If assumptions change, regenerate the assignment outputs and update both chart series and narrative; the dashboard is a presentation of recorded results, not a live solver.
+
+## Interactive analysis
+
+Product filters recalculate total baseline weight, optimized weight, and the weighted premium as total added weight / total baseline weight. The underlying seven-box assignment stays fixed; filtering does not rerun optimization. The download follows the current product selection and order.

@@ -1,14 +1,15 @@
 <!doctype html>
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
     <meta
-      name="description"
       content="A mixed-integer model chooses shared packaging and product assignments from 43 candidate boxes, making the shipping-weight tradeoff explicit."
+      name="description"
     />
     <title>Packaging Standardization — BabyShip · Daniel Kang</title>
-    <link rel="stylesheet" href="style.css?v=20261102" />
+    <link href="style.css?v=20261102b" rel="stylesheet" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to analysis</a>
@@ -16,7 +17,7 @@
       <div class="wrap nav">
         <a href="https://daniel-kang-vs.github.io/">Daniel Kang</a>
         <div class="nav-links">
-          <a href="#analysis">Analysis</a><a href="#method">Method</a
+          <a href="#analysis">Analysis</a><a href="#methodology">Method</a
           ><a href="https://github.com/daniel-kang-vs/stroller-box-optimization"
             >GitHub ↗</a
           >
@@ -53,86 +54,101 @@
           >
         </div>
       </header>
-      <aside class="note">
+      <section id="analysis">
+        <div class="controls">
+          <label
+            >Product
+            <select id="product">
+              <option value="all">All 17 products</option>
+            </select></label
+          ><label
+            >Order
+            <select id="order">
+              <option value="penalty">Largest added weight</option>
+              <option value="name">Product name</option>
+            </select></label
+          ><button class="quiet-button" id="reset" type="button">
+            Reset filters
+          </button>
+        </div>
+        <p class="scope-note" id="scope" role="status"></p>
+        <div class="metrics" id="metrics"></div>
+        <p class="finding" id="finding"></p>
+        <div class="section-heading">
+          <h2>Analysis</h2>
+          <button class="quiet-button" id="export" type="button">
+            Download displayed data
+          </button>
+        </div>
+        <div class="chart-grid" id="charts"></div>
+      </section>
+      <details class="context-details" id="methodology">
+        <summary>Methodology, interpretation and limitations</summary>
+        <section id="method">
+          <div class="method-grid">
+            <div>
+              <p class="eyebrow">Method</p>
+              <h2>From data to decision</h2>
+              <ol>
+                <li>
+                  Calculate feasible product–box assignments under the
+                  notebook’s orientation and clearance rules.
+                </li>
+                <li>
+                  Define billable weight as the maximum of actual weight and box
+                  volume divided by 250.
+                </li>
+                <li>
+                  Minimize the sum of billable weights, with one assignment per
+                  product and at most seven active box types.
+                </li>
+                <li>
+                  Compare the solution with each product’s independently best
+                  feasible catalog box.
+                </li>
+              </ol>
+            </div>
+            <div>
+              <p class="eyebrow">Interpretation</p>
+              <h2>What to take away</h2>
+              <p>
+                Recorded output selects seven types with total billable weight
+                of 1,718.016 lb, versus 1,613.312 lb for the unconstrained
+                per-product benchmark. The added 104.704 lb is 6.49%. Lotus
+                Travel Crib and City Mini GT2 account for 67.712 lb, or about
+                64.7% of that penalty.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section class="note">
+          <h2>Limitations &amp; next steps</h2>
+          <p>
+            This is a modeled, equally weighted product comparison. It does not
+            include shipment frequency, negotiated carrier rates, box purchase
+            costs, damage, or measured warehouse labor. A 17-product baseline
+            does not establish that 17 distinct boxes were previously stocked.
+          </p>
+          <p>
+            <strong>Source:</strong> IP_modeling.ipynb contains the model and
+            stored solver output. Running the optimization requires a suitable
+            Gurobi license.
+          </p>
+          <a
+            href="https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb"
+            >Inspect the source artifact ↗</a
+          >
+        </section>
+      </details>
+      <details class="context-details">
+        <summary>Data scope and definitions</summary>
         <strong>What these numbers represent</strong>
         <p>
           Product dimensions, weights, and the candidate box catalog are
           embedded in the notebook. The model adds 0.5 inches to each product
           dimension and uses a dimensional-weight divisor of 250.
         </p>
-      </aside>
-      <section id="analysis">
-        <p class="eyebrow">Explore the evidence</p>
-        <h2>Interactive analysis</h2>
-        <p>
-          Choose a view, hover for details, or expand a chart’s exact-value
-          table.
-        </p>
-        <div class="controls">
-          <label for="view"
-            >Chart view
-            <select id="view">
-              <option value="all">All charts</option>
-            </select></label
-          >
-        </div>
-        <div class="chart-grid" id="charts" aria-live="polite"></div>
-      </section>
-      <section id="method">
-        <div class="method-grid">
-          <div>
-            <p class="eyebrow">Method</p>
-            <h2>From data to decision</h2>
-            <ol>
-              <li>
-                Calculate feasible product–box assignments under the notebook’s
-                orientation and clearance rules.
-              </li>
-              <li>
-                Define billable weight as the maximum of actual weight and box
-                volume divided by 250.
-              </li>
-              <li>
-                Minimize the sum of billable weights, with one assignment per
-                product and at most seven active box types.
-              </li>
-              <li>
-                Compare the solution with each product’s independently best
-                feasible catalog box.
-              </li>
-            </ol>
-          </div>
-          <div>
-            <p class="eyebrow">Interpretation</p>
-            <h2>What to take away</h2>
-            <p>
-              Recorded output selects seven types with total billable weight of
-              1,718.016 lb, versus 1,613.312 lb for the unconstrained
-              per-product benchmark. The added 104.704 lb is 6.49%. Lotus Travel
-              Crib and City Mini GT2 account for 67.712 lb, or about 64.7% of
-              that penalty.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section class="note">
-        <h2>Limitations &amp; next steps</h2>
-        <p>
-          This is a modeled, equally weighted product comparison. It does not
-          include shipment frequency, negotiated carrier rates, box purchase
-          costs, damage, or measured warehouse labor. A 17-product baseline does
-          not establish that 17 distinct boxes were previously stocked.
-        </p>
-        <p>
-          <strong>Source:</strong> IP_modeling.ipynb contains the model and
-          stored solver output. Running the optimization requires a suitable
-          Gurobi license.
-        </p>
-        <a
-          href="https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb"
-          >Inspect the source artifact ↗</a
-        >
-      </section>
+      </details>
     </main>
     <footer>
       <div class="wrap">
@@ -143,6 +159,6 @@
       </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20261102"></script>
+    <script src="app.js?v=20261102b"></script>
   </body>
 </html>

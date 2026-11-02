@@ -66,3 +66,7 @@ Notebook commands require the referenced CSV files and compatible dependencies; 
 ## Technology
 
 Python · Gurobi · pandas · Optimization
+
+## Dashboard exploration
+
+Product filters recalculate total baseline weight, optimized weight, and the weighted premium as total added weight / total baseline weight. The underlying seven-box assignment stays fixed; filtering does not rerun optimization. The download follows the current product selection and order.
