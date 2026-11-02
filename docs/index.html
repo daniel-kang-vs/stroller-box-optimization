@@ -1,306 +1,148 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BabyShip — Packaging Complexity vs. Shipping Cost | Operations Analytics</title>
-  <meta name="description" content="Operations analytics case study: rationalizing packaging SKUs while limiting shipping cost increase to 6.5%." />
-  <link rel="stylesheet" href="style.css?v=7" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script>
-    window.MathJax = {
-      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
-      svg: { fontCache: 'global' }
-    };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-</head>
-<body>
-
-<nav id="navbar">
-  <div class="nav-inner">
-    <a href="#hero" class="nav-brand">BabyShip</a>
-    <ul class="nav-links">
-      <li><a href="#context">Context</a></li>
-      <li><a href="#pipeline">Pipeline</a></li>
-      <li><a href="#methodology">Method</a></li>
-      <li><a href="#visualizations">Analysis</a></li>
-      <li><a href="#impact">Impact</a></li>
-      <li><a href="https://github.com/daniel-kang-vs/stroller-box-optimization" target="_blank" rel="noopener">GitHub</a></li>
-    </ul>
-  </div>
-</nav>
-
-<header id="hero">
-  <div class="hero-atmosphere" aria-hidden="true"></div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">Operations Analytics Case Study</p>
-    <h1>Cut packaging complexity<br/>without blowing up shipping cost</h1>
-    <p class="hero-sub">
-      BabyShip ships 17 top-selling strollers nationwide. Excess box SKUs drove warehouse complexity —
-      but carriers bill on dimensional weight, so the wrong consolidation can erase the operational win.
-      This case finds the frontier between SKU reduction and landed cost risk.
-    </p>
-    <div class="hero-buttons">
-      <a href="#impact" class="btn btn-primary">View Quantified Impact</a>
-      <a href="https://github.com/daniel-kang-vs/stroller-box-optimization" class="btn btn-outline" target="_blank" rel="noopener">Source Code</a>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><span class="hero-stat-num">17</span><span class="hero-stat-label">Products</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">7</span><span class="hero-stat-label">Box Types</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">59%</span><span class="hero-stat-label">Fewer SKUs</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">6.5%</span><span class="hero-stat-label">Cost Penalty</span></div>
-    </div>
-  </div>
-</header>
-
-<section id="context">
-  <div class="container">
-    <p class="section-eyebrow">01 · Business Context &amp; Stakes</p>
-    <h2 class="section-title">The decision leadership needed to make</h2>
-    <p class="section-subtitle">Fewer box variants — without a material jump in shipping cost</p>
-    <p class="section-intro">
-      One box per product minimizes billable weight but floods the warehouse with packaging inventory,
-      pick complexity, and replenishment overhead. Leadership wanted a smaller catalog — and a clear
-      answer to how much shipping cost that standardization would actually cost.
-    </p>
-
-    <div class="stakes-grid">
-      <article class="stakes-card">
-        <h3>Operational pressure</h3>
-        <p>
-          Seventeen unique boxes meant more slots, more stockouts risk, and higher handling cost.
-          Ops needed a shared catalog that still covered every SKU.
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="A mixed-integer model chooses shared packaging and product assignments from 43 candidate boxes, making the shipping-weight tradeoff explicit."
+    />
+    <title>Packaging Standardization — BabyShip · Daniel Kang</title>
+    <link rel="stylesheet" href="style.css?v=20261102" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to analysis</a>
+    <nav>
+      <div class="wrap nav">
+        <a href="https://daniel-kang-vs.github.io/">Daniel Kang</a>
+        <div class="nav-links">
+          <a href="#analysis">Analysis</a><a href="#method">Method</a
+          ><a href="https://github.com/daniel-kang-vs/stroller-box-optimization"
+            >GitHub ↗</a
+          >
+        </div>
+      </div>
+    </nav>
+    <main class="wrap" id="main">
+      <header class="hero">
+        <p class="eyebrow">Optimization study · recorded solver output</p>
+        <h1>Packaging Standardization — BabyShip</h1>
+        <p class="lead">
+          How much billable weight does a seven-box catalog add when it must fit
+          17 products?
         </p>
-      </article>
-      <article class="stakes-card">
-        <h3>Carrier pricing reality</h3>
         <p>
-          Billable weight is the larger of actual weight and dimensional weight
-          (L&times;W&times;H &divide; 250). Oversized shared boxes quietly inflate landed cost.
+          A mixed-integer model chooses shared packaging and product assignments
+          from 43 candidate boxes, making the shipping-weight tradeoff explicit.
         </p>
-      </article>
-      <article class="stakes-card">
-        <h3>The tradeoff question</h3>
+        <div class="chips">
+          <span>17 products · 43 candidates</span
+          ><span>7 selected box types</span
+          ><span>6.49% added billable weight</span>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="#analysis">Explore the analysis ↓</a
+          ><a
+            class="button"
+            href="https://daniel-kang-vs.github.io/projects/babyship.html"
+            >Read the case study</a
+          ><a
+            class="button"
+            href="https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb"
+            >Source evidence ↗</a
+          >
+        </div>
+      </header>
+      <aside class="note">
+        <strong>What these numbers represent</strong>
         <p>
-          What is the smallest packaging set that keeps shipping cost close to a perfect-fit
-          baseline — and where do the expensive outliers concentrate?
+          Product dimensions, weights, and the candidate box catalog are
+          embedded in the notebook. The model adds 0.5 inches to each product
+          dimension and uses a dimensional-weight divisor of 250.
         </p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section id="pipeline">
-  <div class="container">
-    <p class="section-eyebrow">02 · Data Pipeline</p>
-    <h2 class="section-title">From product specs to decision-ready inputs</h2>
-    <p class="section-subtitle">Python workflows that structure constraints before optimization</p>
-    <p class="section-intro">
-      The analysis starts with measurable product and packaging data — not a blank math model.
-      Dimensions, weights, and fit rules become candidate assignments that can be scored on billable weight.
-    </p>
-
-    <div class="pipeline-steps">
-      <article class="pipeline-step">
-        <span class="pipeline-num">1</span>
-        <h3>Product dimensions</h3>
-        <p>Ingest L&times;W&times;H and actual weight for 17 strollers; flag height-driven outliers that force oversized boxes.</p>
-      </article>
-      <article class="pipeline-step">
-        <span class="pipeline-num">2</span>
-        <h3>DIM weight</h3>
-        <p>Compute dimensional weight for every candidate box and compare to actual weight to estimate carrier billable cost.</p>
-      </article>
-      <article class="pipeline-step">
-        <span class="pipeline-num">3</span>
-        <h3>Candidate boxes</h3>
-        <p>Build a feasible set of 43 box types; validate fit with 0.5&Prime; padding so assignments are warehouse-realistic.</p>
-      </article>
-      <article class="pipeline-step">
-        <span class="pipeline-num">4</span>
-        <h3>Cost matrix</h3>
-        <p>Score every product–box pair on billable weight, ready for the integer program to choose catalog and assignments.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section id="methodology">
-  <div class="container">
-    <p class="section-eyebrow">03 · Methodology</p>
-    <h2 class="section-title">Integer programming as a business tradeoff</h2>
-    <p class="section-subtitle">Minimize billable shipping weight subject to a hard SKU cap</p>
-    <p class="section-intro">
-      The model chooses which box types stay in the warehouse and which box each product uses.
-      Framing it as a tradeoff — not a pure math exercise — makes the 7-box constraint the business
-      lever: how much complexity can we cut before landed cost moves too far?
-    </p>
-
-    <div class="math-layout">
-      <article class="math-panel">
-        <span class="math-label">01 · Sets</span>
-        <h3>Products and Candidate Boxes</h3>
-        <p>Evaluate every product–box pair, then select a small catalog that still covers all products.</p>
-        <div class="math-display">
-          \[
-          \begin{aligned}
-          I &amp;= \{\text{candidate boxes}\} \\
-          J &amp;= \{\text{stroller products}\}
-          \end{aligned}
-          \]
+      </aside>
+      <section id="analysis">
+        <p class="eyebrow">Explore the evidence</p>
+        <h2>Interactive analysis</h2>
+        <p>
+          Choose a view, hover for details, or expand a chart’s exact-value
+          table.
+        </p>
+        <div class="controls">
+          <label for="view"
+            >Chart view
+            <select id="view">
+              <option value="all">All charts</option>
+            </select></label
+          >
         </div>
-      </article>
-
-      <article class="math-panel">
-        <span class="math-label">02 · Decision Variables</span>
-        <h3>Assignment + Box Selection</h3>
-        <p>\(x_{ij}\) assigns product \(j\) to box \(i\). \(y_i\) turns a box type on or off in the warehouse catalog.</p>
-        <div class="math-display">
-          \[
-          \begin{aligned}
-          x_{ij} &amp;\in \{0,1\} \quad \text{product } j \text{ uses box } i \\
-          y_i &amp;\in \{0,1\} \quad \text{box } i \text{ is stocked}
-          \end{aligned}
-          \]
+        <div class="chart-grid" id="charts" aria-live="polite"></div>
+      </section>
+      <section id="method">
+        <div class="method-grid">
+          <div>
+            <p class="eyebrow">Method</p>
+            <h2>From data to decision</h2>
+            <ol>
+              <li>
+                Calculate feasible product–box assignments under the notebook’s
+                orientation and clearance rules.
+              </li>
+              <li>
+                Define billable weight as the maximum of actual weight and box
+                volume divided by 250.
+              </li>
+              <li>
+                Minimize the sum of billable weights, with one assignment per
+                product and at most seven active box types.
+              </li>
+              <li>
+                Compare the solution with each product’s independently best
+                feasible catalog box.
+              </li>
+            </ol>
+          </div>
+          <div>
+            <p class="eyebrow">Interpretation</p>
+            <h2>What to take away</h2>
+            <p>
+              Recorded output selects seven types with total billable weight of
+              1,718.016 lb, versus 1,613.312 lb for the unconstrained
+              per-product benchmark. The added 104.704 lb is 6.49%. Lotus Travel
+              Crib and City Mini GT2 account for 67.712 lb, or about 64.7% of
+              that penalty.
+            </p>
+          </div>
         </div>
-      </article>
-
-      <article class="math-panel math-panel-wide">
-        <span class="math-label">03 · Objective Function</span>
-        <h3>Minimize Total Billable Weight</h3>
-        <p>Assignment cost equals what the carrier charges: the larger of actual product weight and box dimensional weight.</p>
-        <div class="math-display math-display-large">
-          \[
-          \begin{aligned}
-          \min_{x,y} \quad &amp; \sum_{i \in I}\sum_{j \in J} c_{ij}x_{ij} \\
-          c_{ij} = &amp; \max\left(w_j,\frac{L_i W_i H_i}{250}\right)
-          \end{aligned}
-          \]
-        </div>
-      </article>
-
-      <article class="math-panel math-panel-wide">
-        <span class="math-label">04 · Constraints</span>
-        <h3>One Assignment, Seven Boxes, Feasible Fit</h3>
-        <p>Each product gets one box, products can only use active types, and the active catalog is capped at seven — the operational complexity lever.</p>
-        <div class="math-display">
-          \[
-          \begin{aligned}
-          \sum_{i \in I} x_{ij} &amp;= 1 &amp;&amp; \forall j \in J \\
-          x_{ij} &amp;\le y_i &amp;&amp; \forall i \in I,\; j \in J \\
-          \sum_{i \in I} y_i &amp;\le 7 \\
-          x_{ij} &amp;= 0 &amp;&amp; \text{if product } j \text{ does not fit in box } i
-          \end{aligned}
-          \]
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section id="visualizations">
-  <div class="container">
-    <p class="section-eyebrow">04 · Visualizations</p>
-    <h2 class="section-title">Where cost and complexity show up in the data</h2>
-    <p class="section-subtitle">Dimensions, DIM vs. actual weight, and the optimized catalog</p>
-    <p class="section-intro">
-      Height-driven outliers force oversized boxes. DIM weight dominates billing for most SKUs.
-      The solver then packs 17 products into 7 shared types — cutting catalog size by 59%.
-    </p>
-
-    <div class="chart-row">
-      <div class="chart-section">
-        <h3>Product Dimensions (inches)</h3>
-        <p class="chart-caption">Height drives DIM weight for most SKUs — Vista V2 and Fox 5 force oversized boxes.</p>
-        <div class="chart-container wide"><canvas id="strollerDimChart"></canvas></div>
+      </section>
+      <section class="note">
+        <h2>Limitations &amp; next steps</h2>
+        <p>
+          This is a modeled, equally weighted product comparison. It does not
+          include shipment frequency, negotiated carrier rates, box purchase
+          costs, damage, or measured warehouse labor. A 17-product baseline does
+          not establish that 17 distinct boxes were previously stocked.
+        </p>
+        <p>
+          <strong>Source:</strong> IP_modeling.ipynb contains the model and
+          stored solver output. Running the optimization requires a suitable
+          Gurobi license.
+        </p>
+        <a
+          href="https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb"
+          >Inspect the source artifact ↗</a
+        >
+      </section>
+    </main>
+    <footer>
+      <div class="wrap">
+        Daniel Kang · Python · Gurobi · pandas · Optimization ·
+        <a href="https://daniel-kang-vs.github.io/projects.html"
+          >All projects</a
+        >
       </div>
-    </div>
-
-    <div class="chart-row">
-      <div class="chart-section">
-        <h3>Billable Weight: DIM vs. Actual</h3>
-        <p class="chart-caption">Blue = what the carrier charges. Gray = product weight. When blue is taller, you pay for empty space.</p>
-        <div class="chart-container medium"><canvas id="dwVsActualChart"></canvas></div>
-      </div>
-      <div class="chart-section">
-        <h3>17 Unique Boxes vs. 7 Shared</h3>
-        <p class="chart-caption">One box per product is cheapest to ship but hardest to operate. Seven shared types cut SKUs by 59%.</p>
-        <div class="chart-container medium"><canvas id="skuChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="chart-section">
-      <h3>Products per Box Type</h3>
-      <p class="chart-caption">S-16765 (36&times;24&times;18) covers 5 of 17 products. Box 8 (40&times;40&times;40) handles the two heaviest outliers. Solved with Gurobi in 0.02s.</p>
-      <div class="chart-container medium"><canvas id="utilizationChart"></canvas></div>
-    </div>
-  </div>
-</section>
-
-<section id="impact" class="impact-section">
-  <div class="container">
-    <p class="section-eyebrow impact-eyebrow">05 · Business Insights &amp; Quantified Impact</p>
-    <h2 class="section-title">59% fewer packaging SKUs for a 6.5% cost penalty</h2>
-    <p class="section-subtitle">The recommendation leadership can act on</p>
-    <p class="section-intro">
-      Compared with a perfect-fit baseline (one ideal box per product), the optimized 7-box system
-      adds only <strong>6.5%</strong> billable weight — a small shipping-cost premium for cutting
-      packaging SKUs by more than half and giving ops a clear complexity–cost frontier.
-    </p>
-
-    <div class="impact-callout">
-      <p class="impact-callout-label">Executive takeaway</p>
-      <p class="impact-callout-text">
-        Standardize on <strong>7 shared box types</strong>. Accept a <strong>6.5%</strong> shipping-weight
-        penalty to eliminate <strong>59%</strong> of packaging SKUs. Most of the penalty concentrates in
-        two outliers (Vista V2, Fox 5) — a focused exception policy can shrink the residual further.
-      </p>
-    </div>
-
-    <div class="analysis-summary">
-      <div class="analysis-card accent"><span class="analysis-num">1,718</span><span class="analysis-label">Optimized billable (lb)</span></div>
-      <div class="analysis-card muted"><span class="analysis-num">1,613</span><span class="analysis-label">Perfect-fit baseline (lb)</span></div>
-      <div class="analysis-card highlight"><span class="analysis-num">6.5%</span><span class="analysis-label">Cost penalty</span></div>
-      <div class="analysis-card highlight"><span class="analysis-num">59%</span><span class="analysis-label">SKU reduction</span></div>
-    </div>
-
-    <div class="chart-row">
-      <div class="chart-section">
-        <h3>Shipping Weight by Product</h3>
-        <p class="chart-caption">Teal = optimized 7-box system. Amber = best possible single-product box.</p>
-        <div class="chart-container medium"><canvas id="comparisonChart"></canvas></div>
-      </div>
-      <div class="chart-section">
-        <h3>Standardization Penalty (lb)</h3>
-        <p class="chart-caption">Extra weight from sharing boxes. Vista V2 and Fox 5 account for most of the total penalty.</p>
-        <div class="chart-container medium"><canvas id="penaltyChart"></canvas></div>
-      </div>
-    </div>
-
-    <ul class="insight-list">
-      <li>Reduced packaging SKU count by <strong>59%</strong> (17 → 7), lowering warehouse complexity and inventory overhead.</li>
-      <li>Limited shipping cost increase to <strong>6.5%</strong> vs. perfect fit — preserving most of the operational benefit.</li>
-      <li>Gave leadership a quantified frontier between complexity reduction and landed cost risk, with outliers identified for exception handling.</li>
-    </ul>
-  </div>
-</section>
-
-<footer>
-  <div class="container footer-inner">
-    <div class="footer-tech">
-      <p class="footer-stack">Stack: Python · Integer Programming · Gurobi · Operations Research</p>
-      <p class="footer-links">
-        <a href="https://github.com/daniel-kang-vs/stroller-box-optimization" target="_blank" rel="noopener">GitHub repository</a>
-        <span class="footer-sep">·</span>
-        <a href="https://daniel-kang-vs.github.io">Back to portfolio</a>
-      </p>
-    </div>
-    <p class="footer-copy">&copy; 2026 Daniel Kang · Operations Analytics Case Study</p>
-  </div>
-</footer>
-
-<script src="app.js"></script>
-</body>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="app.js?v=20261102"></script>
+  </body>
 </html>

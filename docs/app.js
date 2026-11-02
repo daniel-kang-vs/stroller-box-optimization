@@ -1,114 +1,155 @@
-const strollers = [
-  "Triv Next","Vista V2","Cruz V2","Fox 3","Fox 5","Fox 5 (2pc)",
-  "Mixx Next","City Mini GT2","Single-to-Dbl","Portable Playard",
-  "Close2Baby","Breeze Plus","Swivel Sleeper","Smart Sleeper",
-  "Lullaby Playard","Travel Crib Light","Lotus Travel Crib"
-];
-
-const optimized = [62.208,256,82.944,62.208,256,62.208,62.72,124.416,124.416,43.2,62.208,43.2,124.416,144,82.944,62.72,62.208];
-const perfect   = [53.76,256,69.12,62.208,256,62.208,62.72,93.312,124.416,43.2,62.208,43.2,124.416,144,82.944,48,25.6];
-const penalty   = optimized.map((v,i) => +(v - perfect[i]).toFixed(2));
-
-const boxAssignments = { "Box 6": 2, "Box 8": 2, "S-16765": 5, "S-4478": 3, "S-4659": 2, "S-4866": 2, "S-16766": 1 };
-const dimWeights = optimized;
-const actualWeights = [18.4,27,25.5,21.8,21.1,28,28.3,22.4,27,14,30,23,32,38,25,13,14];
-const strollerDims = {
-  L: [24,17.3,16.5,35,17.3,35,27,31,34,10.31,30,12,34,38,10.5,5,24],
-  W: [22.5,25.7,22.8,21,23.6,20.9,23.6,25.5,24.5,10.31,18,12,34,22,19,23.5,12],
-  H: [15,33,29.5,15,35.4,13.4,19,10.5,18,27.99,10,30,23,15.5,30,19,8]
-};
-
-Chart.defaults.color = "#94a3b8";
-Chart.defaults.borderColor = "rgba(255,255,255,0.05)";
-Chart.defaults.font.family = "Inter, sans-serif";
-
-new Chart(document.getElementById("strollerDimChart"), {
-  type: "bar",
-  data: {
-    labels: strollers,
-    datasets: [
-      { label: "L", data: strollerDims.L, backgroundColor: "#34d399" },
-      { label: "W", data: strollerDims.W, backgroundColor: "#60a5fa" },
-      { label: "H", data: strollerDims.H, backgroundColor: "#f59e0b" }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: "top" } },
-    scales: { x: { ticks: { maxRotation: 45, font: { size: 10 } } }, y: { title: { display: true, text: "Inches" } } }
+const colors = ["#4f46e5", "#0891b2", "#b45309"];
+Chart.defaults.color = "#596277";
+Chart.defaults.font.family = "Figtree, sans-serif";
+Chart.defaults.borderColor = "#e6e9f2";
+let charts = [];
+function draw(spec, id) {
+  const card = document.createElement("article");
+  card.className = "chart-card" + (spec.labels.length > 8 ? " wide" : "");
+  const h = document.createElement("h3");
+  h.textContent = spec.title;
+  const p = document.createElement("p");
+  p.textContent = spec.caption;
+  card.append(h, p);
+  const box = document.createElement("div");
+  box.className = "chart-box";
+  if (spec.labels.length > 8)
+    box.style.height = Math.max(330, spec.labels.length * 30) + "px";
+  const canvas = document.createElement("canvas");
+  canvas.id = id;
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute(
+    "aria-label",
+    spec.title + ". Exact values are available in the table below.",
+  );
+  box.append(canvas);
+  card.append(box);
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "View exact values";
+  details.append(summary);
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+  const table = document.createElement("table");
+  const cap = document.createElement("caption");
+  cap.textContent = spec.title + " (" + spec.unit + ")";
+  table.append(cap);
+  const head = document.createElement("thead"),
+    hr = document.createElement("tr");
+  ["Category", ...spec.series.map((s) => s.label)].forEach((v) => {
+    const th = document.createElement("th");
+    th.scope = "col";
+    th.textContent = v;
+    hr.append(th);
+  });
+  head.append(hr);
+  table.append(head);
+  const body = document.createElement("tbody");
+  spec.labels.forEach((v, i) => {
+    const tr = document.createElement("tr");
+    [v, ...spec.series.map((s) => s.values[i])].forEach((x, j) => {
+      const td = document.createElement(j === 0 ? "th" : "td");
+      if (j === 0) td.scope = "row";
+      td.textContent =
+        typeof x === "number"
+          ? x.toLocaleString(undefined, { maximumFractionDigits: 4 })
+          : x;
+      tr.append(td);
+    });
+    body.append(tr);
+  });
+  table.append(body);
+  wrap.append(table);
+  details.append(wrap);
+  card.append(details);
+  document.getElementById("charts").append(card);
+  charts.push(
+    new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: spec.labels,
+        datasets: spec.series.map((s, i) => ({
+          label: s.label,
+          data: s.values,
+          backgroundColor: colors[i % colors.length],
+          borderRadius: 3,
+        })),
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: spec.series.length > 1, position: "bottom" },
+        },
+        scales: {
+          x: {
+            ticks: { maxRotation: 65, autoSkip: false, font: { size: 11 } },
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: spec.unit },
+            ...(spec.unit === "ROC-AUC" ? { max: 1 } : {}),
+            ...(spec.unit.startsWith("%") ? { max: 100 } : {}),
+          },
+        },
+      },
+    }),
+  );
+}
+function render() {
+  charts.forEach((c) => c.destroy());
+  charts = [];
+  document.getElementById("charts").replaceChildren();
+  const specs = [...DATA.charts];
+  if (DATA.slots) {
+    const r = DATA.slots[document.getElementById("slot").value];
+    specs.push({
+      title: "Total modeled cost for selected slot",
+      caption:
+        "A: flat idle cost, fixed fleet. B: borough idle cost, fixed fleet. C: borough idle cost, adjustable fleet; total includes rental adjustment.",
+      labels: ["A · baseline", "B · fixed fleet", "C · adjustable fleet"],
+      series: [
+        {
+          label: "Total modeled cost",
+          values: ["total_cost_A", "total_cost_B", "total_cost_C"].map((k) =>
+            Number(r[k]),
+          ),
+        },
+      ],
+      unit: "USD / slot",
+    });
+    document.getElementById("slotStatus").textContent =
+      "Model C selected fleet: " +
+      Number(r.F_star).toLocaleString(undefined, { maximumFractionDigits: 0 }) +
+      " vehicles. " +
+      r.direction;
   }
-});
-
-new Chart(document.getElementById("dwVsActualChart"), {
-  type: "bar",
-  data: {
-    labels: strollers,
-    datasets: [
-      { label: "Billable (DIM)", data: dimWeights, backgroundColor: "rgba(96,165,250,0.8)" },
-      { label: "Actual weight", data: actualWeights, backgroundColor: "rgba(148,163,184,0.5)" }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: "top" } },
-    scales: { x: { ticks: { maxRotation: 45, font: { size: 9 } } }, y: { title: { display: true, text: "lb" } } }
-  }
-});
-
-new Chart(document.getElementById("skuChart"), {
-  type: "bar",
-  data: {
-    labels: ["Box SKUs", "Warehouse complexity"],
-    datasets: [
-      { label: "Before (1:1)", data: [17, 100], backgroundColor: "#ef4444", borderRadius: 6 },
-      { label: "After (optimized)", data: [7, 41], backgroundColor: "#34d399", borderRadius: 6 }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: "top" } },
-    scales: { y: { title: { display: true, text: "Count / Index" } } }
-  }
-});
-
-new Chart(document.getElementById("utilizationChart"), {
-  type: "doughnut",
-  data: {
-    labels: Object.keys(boxAssignments),
-    datasets: [{ data: Object.values(boxAssignments),
-      backgroundColor: ["#fb923c","#ef4444","#34d399","#f59e0b","#60a5fa","#a78bfa","#f472b6"], borderWidth: 0 }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: "right" } }
-  }
-});
-
-new Chart(document.getElementById("comparisonChart"), {
-  type: "bar",
-  data: {
-    labels: strollers,
-    datasets: [
-      { label: "7-box system", data: optimized, backgroundColor: "#34d399" },
-      { label: "Perfect fit", data: perfect, backgroundColor: "#f59e0b" }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: "top" } },
-    scales: { x: { ticks: { maxRotation: 45, font: { size: 9 } } }, y: { title: { display: true, text: "Ship weight (lb)" } } }
-  }
-});
-
-new Chart(document.getElementById("penaltyChart"), {
-  type: "bar",
-  data: {
-    labels: strollers,
-    datasets: [{ data: penalty, backgroundColor: penalty.map(v => v > 20 ? "#ef4444" : v > 0 ? "#f59e0b" : "#334155") }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: { x: { ticks: { maxRotation: 45, font: { size: 9 } } }, y: { title: { display: true, text: "Extra lb vs perfect" } } }
-  }
-});
+  const choice = document.getElementById("view").value;
+  specs.forEach((s, i) => {
+    if (choice === "all" || Number(choice) === i) draw(s, "chart" + i);
+  });
+}
+fetch("data.json")
+  .then((r) => {
+    if (!r.ok) throw Error("HTTP " + r.status);
+    return r.json();
+  })
+  .then((data) => {
+    window.DATA = data;
+    const view = document.getElementById("view");
+    data.charts.forEach((s, i) => {
+      const o = document.createElement("option");
+      o.value = i;
+      o.textContent = s.title;
+      view.append(o);
+    });
+    view.addEventListener("change", render);
+    document.getElementById("slot")?.addEventListener("change", render);
+    render();
+  })
+  .catch((e) => {
+    document.getElementById("charts").textContent =
+      "The analysis could not load. Please reload or inspect the source data using the link above.";
+    console.error(e);
+  });

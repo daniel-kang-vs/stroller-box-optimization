@@ -1,0 +1,89 @@
+{
+  "charts": [
+    {
+      "title": "The catalog tradeoff",
+      "caption": "One modeled shipment of each product; no frequency weighting.",
+      "labels": ["Independent best fit", "Seven-box solution"],
+      "series": [
+        {
+          "label": "Billable weight",
+          "values": [1613.312, 1718.016]
+        }
+      ],
+      "unit": "lb"
+    },
+    {
+      "title": "Billable weight by product",
+      "caption": "The benchmark chooses the best feasible catalog box independently for each product.",
+      "labels": [
+        "Triv Next",
+        "Vista V2",
+        "Cruz V2",
+        "Fox 3",
+        "Fox 5",
+        "Fox 5 (2pc)",
+        "Mixx Next",
+        "City Mini GT2",
+        "Single-to-Dbl",
+        "Portable Playard",
+        "Close2Baby",
+        "Breeze Plus",
+        "Swivel Sleeper",
+        "Smart Sleeper",
+        "Lullaby Playard",
+        "Travel Crib Light",
+        "Lotus Travel Crib"
+      ],
+      "series": [
+        {
+          "label": "Independent best fit",
+          "values": [
+            53.76, 256, 69.12, 62.208, 256, 62.208, 62.72, 93.312, 124.416,
+            43.2, 62.208, 43.2, 124.416, 144, 82.944, 48, 25.6
+          ]
+        },
+        {
+          "label": "Seven-box solution",
+          "values": [
+            62.208, 256, 82.944, 62.208, 256, 62.208, 62.72, 124.416, 124.416,
+            43.2, 62.208, 43.2, 124.416, 144, 82.944, 62.72, 62.208
+          ]
+        }
+      ],
+      "unit": "lb"
+    },
+    {
+      "title": "Where the penalty occurs",
+      "caption": "Lotus Travel Crib and City Mini GT2 contribute about 64.7% of the added weight.",
+      "labels": [
+        "Triv Next",
+        "Vista V2",
+        "Cruz V2",
+        "Fox 3",
+        "Fox 5",
+        "Fox 5 (2pc)",
+        "Mixx Next",
+        "City Mini GT2",
+        "Single-to-Dbl",
+        "Portable Playard",
+        "Close2Baby",
+        "Breeze Plus",
+        "Swivel Sleeper",
+        "Smart Sleeper",
+        "Lullaby Playard",
+        "Travel Crib Light",
+        "Lotus Travel Crib"
+      ],
+      "series": [
+        {
+          "label": "Additional billable weight",
+          "values": [
+            8.448, 0, 13.824, 0.0, 0, 0.0, 0.0, 31.104, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0, 0.0, 14.72, 36.608
+          ]
+        }
+      ],
+      "unit": "lb"
+    }
+  ]
+}

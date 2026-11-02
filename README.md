@@ -1,128 +1,66 @@
 # Packaging Standardization — BabyShip
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python) ![Gurobi](https://img.shields.io/badge/Gurobi-ILP-e85d04) ![pandas](https://img.shields.io/badge/pandas-NumPy-150458?logo=pandas)
+> How much billable weight does a seven-box catalog add when it must fit 17 products?
 
-> **Decision:** pick at most 7 shipping boxes for 17 strollers. A unique box per product is the cheapest on dimensional weight and the worst thing to stock. The solver keeps the billable-weight penalty to **6.5%** while cutting box variety by **59%**.
+**Optimization study · recorded solver output**
 
-**[Live demo](https://daniel-kang-vs.github.io/stroller-box-optimization/)**
+A mixed-integer model chooses shared packaging and product assignments from 43 candidate boxes, making the shipping-weight tradeoff explicit.
 
----
+[Case study](https://daniel-kang-vs.github.io/projects/babyship.html) · [Source evidence](https://github.com/daniel-kang-vs/stroller-box-optimization/blob/main/IP_modeling.ipynb) · [Live dashboard](https://daniel-kang-vs.github.io/stroller-box-optimization/)
 
-## Project Highlights
+## Highlights
 
-- Integer program over **43 candidate boxes** and **17 products**, with a hard cap of **7 box types**
-- Fit is physical, not approximate: a stroller fits a box only if length, width, and height all clear with **0.5 inch** of padding
-- **774 binary variables**, **1,394 constraints**, proven optimum in **0.02 seconds**
-- Compared against a one-box-per-product baseline so the standardization penalty is explicit, not implied
+- **17 products · 43 candidates**
+- **7 selected box types**
+- **6.49% added billable weight**
 
----
+## The problem
 
-## Problem Statement
+A smaller packaging catalog simplifies stocking, but oversized boxes increase dimensional weight. The decision is which boxes to keep under a seven-type cap.
 
-Carriers bill **dimensional weight**, `L × W × H / 250`, whenever that exceeds the product’s actual weight. Empty space inside an oversized box becomes cost.
+## Data & scope
 
-Two extremes both fail:
+Product dimensions, weights, and the candidate box catalog are embedded in the notebook. The model adds 0.5 inches to each product dimension and uses a dimensional-weight divisor of 250.
 
-| Policy | Shipping weight | Warehouse problem |
-|--------|-----------------|-------------------|
-| One perfect box per stroller | Lowest (1,613.3 lb) | 17 SKUs to stock, pick, and store |
-| One box for everything | Highest | One SKU, a lot of paid air |
-| **At most 7 box types** | **1,718.0 lb** | Variety cut by 59% |
+## How it works
 
-The question is which 7 commercial boxes to keep, and which stroller goes in which box, so total billable weight stays close to the perfect-fit baseline.
+1. Calculate feasible product–box assignments under the notebook’s orientation and clearance rules.
+2. Define billable weight as the maximum of actual weight and box volume divided by 250.
+3. Minimize the sum of billable weights, with one assignment per product and at most seven active box types.
+4. Compare the solution with each product’s independently best feasible catalog box.
 
----
+## Key technical decision
 
-## Data
+Use an explicit catalog cap and physical fit constraints. Billable weight is a transparent proxy, but it is not a carrier invoice or a measured dollar saving.
 
-| Input | Count | Source |
-|-------|-------|--------|
-| Strollers | 17 | Manufacturer dimensions and weights |
-| Candidate boxes | 43 | Walmart, Uline S-codes, and standard carton sizes |
-| Fit rule | 0.5 in padding | All three dimensions must clear |
+## Results & interpretation
 
-A product-box pair is feasible only when the stroller fits. Infeasible pairs are excluded before the solver runs, so the optimizer never assigns a box that cannot physically hold the product.
+Recorded output selects seven types with total billable weight of 1,718.016 lb, versus 1,613.312 lb for the unconstrained per-product benchmark. The added 104.704 lb is 6.49%. Lotus Travel Crib and City Mini GT2 account for 67.712 lb, or about 64.7% of that penalty.
 
----
+## Limitations & next steps
 
-## Formulation
+This is a modeled, equally weighted product comparison. It does not include shipment frequency, negotiated carrier rates, box purchase costs, damage, or measured warehouse labor. A 17-product baseline does not establish that 17 distinct boxes were previously stocked.
 
-```
-Decision variables
-  y_b    = 1 if box type b is stocked
-  x_pb   = 1 if product p ships in box b
+## Evidence & reproducibility
 
-Constraints
-  each product assigned to exactly one feasible box
-  x_pb ≤ y_b                         a product cannot use a box that is not stocked
-  sum(y_b) ≤ 7                       warehouse variety cap
+IP_modeling.ipynb contains the model and stored solver output. Running the optimization requires a suitable Gurobi license.
 
-Objective
-  minimize total billable weight
-  billable weight = max(actual weight, L × W × H / 250)
-```
+## Repository guide
 
-The baseline is the same objective with the variety cap removed, which collapses to one box per product.
+- [`IP_modeling.ipynb`](IP_modeling.ipynb) — analysis implementation.
+- [`docs/`](docs/) — static dashboard, styles, and browser-side analysis.
 
----
+## Run or inspect
 
-## Results
-
-| Metric | Value |
-|--------|-------|
-| Box types selected | 7 |
-| Optimized billable weight | 1,718.0 lb |
-| Perfect-fit baseline | 1,613.3 lb |
-| Standardization penalty | 104.7 lb (**6.5%**) |
-| Variety reduction | 17 → 7 types (**59%**) |
-| Model size | 774 binaries, 1,394 constraints |
-| Solve time | 0.02 s to proven optimum |
-
----
-
-## Key Technical Decisions
-
-1. **Cap variety, do not cap weight.** The business constraint is the number of cartons the warehouse will stock. Putting that in the constraint and weight in the objective makes the tradeoff a number someone can accept or reject.
-
-2. **Padding is a constraint, not a fudge factor.** A 0.5 inch clearance on every side stops the solver from calling a snug CAD fit a shippable box.
-
-3. **Report the penalty against a perfect baseline.** “7 boxes” is not a result by itself. The result is how many extra pounds that cap costs versus giving every stroller its own box.
-
-4. **The objective is billable weight, not a carrier invoice.** Lane, zone, and contract rates are not in the model. A next pass would price the same assignments in dollars.
-
----
-
-## Repository Structure
-
-```
-├── IP_modeling.ipynb    # Gurobi model, fit matrix, and baseline comparison
-├── docs/                # Live demo (GitHub Pages)
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-└── README.md
-```
-
----
-
-## How to Run
-
-Gurobi requires a local license (free academic license works).
+Clone this repository and run from its root:
 
 ```bash
-pip install pandas numpy gurobipy matplotlib seaborn
+pip install jupyter pandas numpy gurobipy
 jupyter notebook IP_modeling.ipynb
 ```
 
-The demo site does not need Gurobi. It is the static page in `docs/`.
+Notebook commands require the referenced CSV files and compatible dependencies; recorded results have not been retrained for this documentation refresh.
 
----
+## Technology
 
-## Tech Stack
-
-| Library | Purpose |
-|---------|---------|
-| gurobipy | Integer program and proven optimum |
-| pandas / NumPy | Product and box tables, fit matrix |
-| matplotlib / seaborn | Weight and assignment charts in the notebook |
-| Chart.js | Charts on the live demo |
+Python · Gurobi · pandas · Optimization
